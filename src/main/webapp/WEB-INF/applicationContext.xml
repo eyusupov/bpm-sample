@@ -2,14 +2,24 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
                          http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean id="propertyPlaceholderConfigurer"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
+        <property name="searchSystemEnvironment" value="true" />
+        <property name="ignoreUnresolvablePlaceholders" value="true" />
+    </bean>
+
+    <bean class="java.net.URI" id="dbUrl">
+        <constructor-arg value="${DATABASE_URL://bpmsample:bpmsample@localhost:5432/bpmsample}"/>
+    </bean>
+
     <bean id="dataSource" class="org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy">
         <property name="targetDataSource">
             <bean class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
-                <property name="driverClass" value="org.h2.Driver" />
-                <property name="url"
-                          value="jdbc:h2:mem:process-engine;DB_CLOSE_DELAY=1000" />
-                <property name="username" value="sa" />
-                <property name="password" value="" />
+                <property name="driverClass" value="org.postgresql.Driver" />
+                <property name="url" value="#{ 'jdbc:postgresql://' + @dbUrl.getHost() + ':' + @dbUrl.getPort() + @dbUrl.getPath() }"/>
+                <property name="username" value="#{ @dbUrl.getUserInfo().split(':')[0] }"/>
+                <property name="password" value="#{ @dbUrl.getUserInfo().split(':')[1] }"/>
             </bean>
         </property>
     </bean>
